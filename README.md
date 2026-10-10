@@ -80,3 +80,23 @@ VITE_API_TARGET=https://dxxxx.cloudfront.net npm run dev   # proxies /api to you
 
 cd backend && python -m unittest discover -s tests          # validation and normalization tests
 ```
+
+## Screenshots
+
+### Home
+
+The main page where users describe their project idea and select their experience level and budget.
+
+![Home page](docs/screenshots/home.png)
+
+### Services
+
+The generated AWS architecture, including the recommended architectural pattern and AWS services, with their roles and justifications.
+
+![AWS services and architecture pattern](docs/screenshots/services.png)
+
+### Roadmap
+
+The implementation roadmap with development phases, estimated costs, potential risks, and mitigation strategies.
+
+![Implementation roadmap, costs, and risks](docs/screenshots/roadmap.png)
