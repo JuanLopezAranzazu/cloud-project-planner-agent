@@ -1,0 +1,2 @@
+# boto3 ships with the Lambda runtime; listed here for local development only.
+boto3>=1.35
