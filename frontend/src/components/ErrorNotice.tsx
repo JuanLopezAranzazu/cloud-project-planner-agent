@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertIcon, AlertTitle, Box, Button, HStack } from '@chakra-ui/react';
+import { Alert, AlertDescription, AlertIcon, AlertTitle, Box, Button, Wrap } from '@chakra-ui/react';
 import { RotateCcw, Pencil } from 'lucide-react';
 import { ApiError } from '../api';
 
@@ -33,18 +33,18 @@ export function ErrorNotice({ error, onRetry, onEdit }: Props) {
       <Box flex={1}>
         <AlertTitle fontFamily="heading">{TITLES[code] ?? 'Something didn\'t go as expected'}</AlertTitle>
         <AlertDescription display="block" mt={1}>{error.message}</AlertDescription>
-        <HStack mt={3} spacing={3}>
+        <Wrap mt={3} spacing={3}>
           {retryable && (
-            <Button size="sm" onClick={onRetry} leftIcon={<RotateCcw size={14} />} bg="ink" color="white" _hover={{ bg: 'blueprint' }}>
+            <Button size={{ base: 'md', md: 'sm' }} onClick={onRetry} leftIcon={<RotateCcw size={14} />} bg="ink" color="white" _hover={{ bg: 'blueprint' }}>
               Retry
             </Button>
           )}
           {canEdit && (
-            <Button size="sm" variant="outline" onClick={onEdit} leftIcon={<Pencil size={14} />}>
+            <Button size={{ base: 'md', md: 'sm' }} variant="outline" onClick={onEdit} leftIcon={<Pencil size={14} />}>
               Edit my idea
             </Button>
           )}
-        </HStack>
+        </Wrap>
       </Box>
     </Alert>
   );

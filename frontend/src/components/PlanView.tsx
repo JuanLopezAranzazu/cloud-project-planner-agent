@@ -1,9 +1,9 @@
 import { forwardRef, useState } from 'react';
 import {
-  Badge, Box, Button, Flex, Heading, HStack, Icon, Stack, Text, Wrap, WrapItem, useToast,
+  Badge, Box, Button, Flex, Heading, HStack, Icon, Stack, Text, useToast,
 } from '@chakra-ui/react';
 import {
-  ArrowRight, Check, Clipboard, Download, Flag, Lightbulb, Plus, ShieldAlert, Wallet,
+  ArrowDown, ArrowRight, Check, Clipboard, Download, Flag, Lightbulb, Plus, ShieldAlert, Wallet,
 } from 'lucide-react';
 import type { Plan } from '../types';
 import { planToMarkdown, tierLabel } from '../markdown';
@@ -59,22 +59,22 @@ export const PlanView = forwardRef<HTMLHeadingElement, Props>(function PlanView(
     <Stack spacing={6}>
       {/* Plan header */}
       <Box>
-        <Heading as="h2" ref={headingRef} tabIndex={-1} fontSize={{ base: '3xl', md: '5xl' }} _focus={{ outline: 'none' }}>
+        <Heading as="h2" ref={headingRef} tabIndex={-1} fontSize={{ base: '3xl', md: '5xl' }} _focus={{ outline: 'none' }} overflowWrap="anywhere">
           {plan.title}
         </Heading>
-        <Text mt={2} fontSize="xl" color="sky.700" fontFamily="heading" fontWeight={500}>{plan.tagline}</Text>
+        <Text mt={2} fontSize={{ base: 'lg', md: 'xl' }} color="sky.700" fontFamily="heading" fontWeight={500}>{plan.tagline}</Text>
         <Text mt={4} maxW="68ch">{plan.summary}</Text>
-        <HStack mt={5} spacing={3} flexWrap="wrap" rowGap={2}>
-          <Button size="sm" onClick={copy} leftIcon={<Icon as={copied ? Check : Clipboard} boxSize={4} />} bg="ink" color="white" _hover={{ bg: 'blueprint' }}>
+        <Stack mt={5} direction={{ base: 'column', sm: 'row' }} spacing={3}>
+          <Button size={{ base: 'md', sm: 'sm' }} onClick={copy} leftIcon={<Icon as={copied ? Check : Clipboard} boxSize={4} />} bg="ink" color="white" _hover={{ bg: 'blueprint' }}>
             Copy as Markdown
           </Button>
-          <Button size="sm" variant="outline" onClick={download} leftIcon={<Icon as={Download} boxSize={4} />}>
+          <Button size={{ base: 'md', sm: 'sm' }} variant="outline" onClick={download} leftIcon={<Icon as={Download} boxSize={4} />}>
             Download .md
           </Button>
-          <Button size="sm" variant="ghost" onClick={onReset} leftIcon={<Icon as={Plus} boxSize={4} />}>
+          <Button size="sm" variant="ghost" onClick={onReset} display={{ base: 'none', sm: 'inline-flex' }} leftIcon={<Icon as={Plus} boxSize={4} />}>
             New idea
           </Button>
-        </HStack>
+        </Stack>
       </Box>
 
       {/* The blueprint: a request flow */}
@@ -90,13 +90,32 @@ export const PlanView = forwardRef<HTMLHeadingElement, Props>(function PlanView(
           Pattern: {plan.architecture.pattern}
         </Text>
         <Text fontSize="sm" color="whiteAlpha.800" mb={4}>How a typical request travels:</Text>
-        <Flex wrap="wrap" align="center" gap={2} as="ol" listStyleType="none">
+        <Flex
+          as="ol"
+          listStyleType="none"
+          direction={{ base: 'column', md: 'row' }}
+          wrap={{ base: 'nowrap', md: 'wrap' }}
+          align={{ base: 'flex-start', md: 'center' }}
+          gap={2}
+        >
           {plan.architecture.flow.map((step, i) => (
-            <Flex as="li" key={`${step}-${i}`} align="center" gap={2}>
-              <Box px={3} py={1.5} border="1.5px dashed" borderColor="marker" rounded="md" bg="blackAlpha.300" fontWeight={500} fontSize="sm">
+            <Flex
+              as="li"
+              key={`${step}-${i}`}
+              direction={{ base: 'column', md: 'row' }}
+              align={{ base: 'flex-start', md: 'center' }}
+              gap={2}
+              maxW="full"
+            >
+              <Box px={3} py={1.5} border="1.5px dashed" borderColor="marker" rounded="md" bg="blackAlpha.300" fontWeight={500} fontSize="sm" wordBreak="break-word">
                 {step}
               </Box>
-              {i < plan.architecture.flow.length - 1 && <Icon as={ArrowRight} boxSize={4} color="marker" aria-label="then" />}
+              {i < plan.architecture.flow.length - 1 && (
+                <>
+                  <Icon as={ArrowDown} aria-hidden boxSize={4} color="marker" ml={4} display={{ base: 'block', md: 'none' }} />
+                  <Icon as={ArrowRight} aria-hidden boxSize={4} color="marker" display={{ base: 'none', md: 'block' }} />
+                </>
+              )}
             </Flex>
           ))}
         </Flex>
@@ -128,7 +147,7 @@ export const PlanView = forwardRef<HTMLHeadingElement, Props>(function PlanView(
                 </Flex>
                 {i < plan.roadmap.length - 1 && <Box flex={1} w="2px" bg="rule" mt={2} />}
               </Flex>
-              <Box pb={2}>
+              <Box pb={2} flex={1} minW={0}>
                 <HStack spacing={3} flexWrap="wrap">
                   <Text fontFamily="heading" fontWeight={700} fontSize="lg">{r.title}</Text>
                   <Badge colorScheme="blue" rounded="md" textTransform="none">{r.duration}</Badge>
@@ -177,13 +196,19 @@ export const PlanView = forwardRef<HTMLHeadingElement, Props>(function PlanView(
         <Text fontSize="lg" maxW="60ch">{plan.nextStep}</Text>
       </Box>
 
-      <Wrap>
-        <WrapItem>
-          <Text fontSize="sm" color="muted">
-            Cost estimates are approximate. Check the AWS Pricing Calculator before deploying.
-          </Text>
-        </WrapItem>
-      </Wrap>
+      <Text fontSize="sm" color="muted">
+        Cost estimates are approximate. Check the AWS Pricing Calculator before deploying.
+      </Text>
+      <Button
+        onClick={onReset}
+        variant="outline"
+        borderColor="ink"
+        size="lg"
+        alignSelf={{ base: 'stretch', sm: 'flex-start' }}
+        leftIcon={<Icon as={Plus} boxSize={5} />}
+      >
+        Plan another idea
+      </Button>
     </Stack>
   );
 });

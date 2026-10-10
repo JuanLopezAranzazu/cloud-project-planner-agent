@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from 'react';
 import {
-  Box, Button, ButtonGroup, FormControl, FormHelperText, FormLabel, HStack,
+  Box, Button, FormControl, FormHelperText, FormLabel,
   Icon, Stack, Text, Textarea, Wrap, WrapItem,
 } from '@chakra-ui/react';
 import { Hammer, Sparkles } from 'lucide-react';
@@ -37,25 +37,32 @@ interface SegmentedProps<T extends string> {
 
 function Segmented<T extends string>({ label, options, value, onChange }: SegmentedProps<T>) {
   return (
-    <Box role="group" aria-label={label}>
+    <Box role="group" aria-label={label} w={{ base: 'full', md: 'auto' }}>
       <Text fontWeight={600} fontSize="sm" mb={2}>{label}</Text>
-      <ButtonGroup isAttached size="sm" flexWrap="wrap" rowGap={2}>
-        {options.map((o) => (
-          <Button
-            key={o.value}
-            onClick={() => onChange(o.value)}
-            aria-pressed={value === o.value}
-            bg={value === o.value ? 'ink' : 'white'}
-            color={value === o.value ? 'white' : 'ink'}
-            borderWidth="1px"
-            borderColor={value === o.value ? 'ink' : 'rule'}
-            _hover={{ bg: value === o.value ? 'ink' : 'sky.50' }}
-            fontWeight={500}
-          >
-            {o.label}
-          </Button>
-        ))}
-      </ButtonGroup>
+      <Wrap spacing={2}>
+        {options.map((o) => {
+          const active = value === o.value;
+          return (
+            <WrapItem key={o.value}>
+              <Button
+                onClick={() => onChange(o.value)}
+                aria-pressed={active}
+                minH="44px"
+                px={4}
+                rounded="full"
+                bg={active ? 'ink' : 'white'}
+                color={active ? 'white' : 'ink'}
+                borderWidth="1px"
+                borderColor={active ? 'ink' : 'rule'}
+                _hover={{ bg: active ? 'ink' : 'sky.50' }}
+                fontWeight={500}
+              >
+                {o.label}
+              </Button>
+            </WrapItem>
+          );
+        })}
+      </Wrap>
     </Box>
   );
 }
@@ -104,6 +111,7 @@ export function IdeaForm({ onSubmit, initial, compact }: Props) {
           placeholder="E.g.: An app for my neighborhood to share borrowed tools…"
           rows={compact ? 3 : 5}
           resize="vertical"
+          fontSize="16px"
           bg="paper"
           borderColor="rule"
           focusBorderColor="sky.500"
@@ -116,13 +124,15 @@ export function IdeaForm({ onSubmit, initial, compact }: Props) {
           <Text fontSize="sm" color="muted" mb={2}>No idea yet? Tap one:</Text>
           <Wrap spacing={2}>
             {EXAMPLES.map((ex) => (
-              <WrapItem key={ex}>
+              <WrapItem key={ex} w={{ base: 'full', sm: 'auto' }}>
                 <Button
                   size="sm"
                   variant="outline"
                   borderColor="rule"
                   fontWeight={400}
                   textAlign="left"
+                  w={{ base: 'full', sm: 'auto' }}
+                  justifyContent="flex-start"
                   whiteSpace="normal"
                   h="auto"
                   py={2}
@@ -137,14 +147,14 @@ export function IdeaForm({ onSubmit, initial, compact }: Props) {
         </Box>
       )}
 
-      <HStack spacing={8} align="flex-start" flexWrap="wrap" rowGap={5}>
+      <Stack direction={{ base: 'column', md: 'row' }} spacing={{ base: 5, md: 10 }}>
         <Segmented label="Your level" options={LEVELS} value={level} onChange={setLevel} />
         <Segmented label="Your budget" options={BUDGETS} value={budget} onChange={setBudget} />
-      </HStack>
+      </Stack>
 
       <Button
         size="lg"
-        alignSelf="flex-start"
+        alignSelf={{ base: 'stretch', sm: 'flex-start' }}
         bg="sky.500"
         color="white"
         _hover={{ bg: 'sky.600' }}

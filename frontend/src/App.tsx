@@ -51,15 +51,15 @@ export default function App() {
   const showForm = state.status === 'idle' || state.status === 'error';
 
   return (
-    <Container maxW="4xl" pb={20}>
+    <Container maxW="4xl" px={{ base: 4, md: 6 }} pb={{ base: 'calc(3rem + env(safe-area-inset-bottom, 0px))', md: 20 }}>
       <Header />
 
       {state.status === 'idle' && (
-        <Box py={{ base: 6, md: 10 }}>
-          <Heading as="h1" fontSize={{ base: '4xl', md: '6xl' }} maxW="14ch">
+        <Box py={{ base: 4, md: 10 }}>
+          <Heading as="h1" fontSize={{ base: '3xl', sm: '4xl', md: '6xl' }} maxW={{ base: 'none', md: '14ch' }}>
             Tell me your idea. I'll hand you the blueprint.
           </Heading>
-          <Text mt={5} fontSize="lg" maxW="56ch" color="muted">
+          <Text mt={{ base: 4, md: 5 }} fontSize={{ base: 'md', md: 'lg' }} maxW="56ch" color="muted">
             Hi, I'm Nimbo. I turn a software idea into a technical plan on AWS: services,
             roadmap, costs and risks, tailored to your level and your budget.
           </Text>

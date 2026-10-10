@@ -28,7 +28,7 @@ export function Thinking({ onCancel }: { onCancel: () => void }) {
       bg="blueprint"
       color="white"
       rounded="2xl"
-      py={14}
+      py={{ base: 10, md: 14 }}
       px={6}
       role="status"
       aria-live="polite"
@@ -36,7 +36,7 @@ export function Thinking({ onCancel }: { onCancel: () => void }) {
       backgroundSize="24px 24px"
     >
       <Icon as={LoaderCircle} boxSize={9} color="marker" animation={`${spin} 1.6s linear infinite`} sx={reduce} />
-      <Text fontFamily="heading" fontSize="xl" fontWeight={500} textAlign="center" minH="2em">
+      <Text fontFamily="heading" fontSize={{ base: 'lg', md: 'xl' }} fontWeight={500} textAlign="center" minH={{ base: '3.4em', md: '2em' }}>
         {MESSAGES[i]}
       </Text>
       <Box w="full" maxW="280px" h="4px" bg="whiteAlpha.300" rounded="full" overflow="hidden">
