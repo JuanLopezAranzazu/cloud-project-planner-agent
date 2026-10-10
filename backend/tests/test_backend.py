@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 os.environ.setdefault("AWS_DEFAULT_REGION", "us-east-1")
 
 from validation import ValidationError, validate_request
-from planner import normalize_plan
+from planner import _extract_plan, normalize_plan
 
 
 class ValidationTests(unittest.TestCase):
@@ -36,6 +36,28 @@ class NormalizeTests(unittest.TestCase):
         self.assertEqual(plan["cost"]["tier"], "low")
         self.assertEqual(plan["roadmap"], [])
         self.assertEqual(plan["architecture"]["services"], [])
+
+
+def _resp(text):
+    return {"output": {"message": {"content": [{"text": text}]}}}
+
+
+class ExtractTests(unittest.TestCase):
+    def test_prefilled_brace_is_missing(self):
+        out = _extract_plan(_resp('"title": "Demo", "nextStep": "Go"}'))
+        self.assertEqual(out["title"], "Demo")
+
+    def test_model_repeats_brace_and_adds_trailing_text(self):
+        out = _extract_plan(_resp('{"title": "Demo"}\n\nHope this helps!'))
+        self.assertEqual(out["title"], "Demo")
+
+    def test_code_fence(self):
+        out = _extract_plan(_resp('```json\n{"title": "Demo"}\n```'))
+        self.assertEqual(out["title"], "Demo")
+
+    def test_garbage_returns_none(self):
+        self.assertIsNone(_extract_plan(_resp("sorry, I can't")))
+        self.assertIsNone(_extract_plan(_resp('"title": "oops",')))
 
 
 if __name__ == "__main__":

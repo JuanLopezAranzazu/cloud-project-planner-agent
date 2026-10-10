@@ -7,12 +7,11 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError, ReadTimeoutError
 
-from prompts import PLAN_TOOL, SYSTEM_PROMPT, build_user_prompt
+from prompts import SYSTEM_PROMPT, build_user_prompt
 
 logger = logging.getLogger(__name__)
 
 MODEL_ID = os.environ.get("MODEL_ID", "us.amazon.nova-lite-v1:0")
-TOOL_NAME = PLAN_TOOL["name"]
 
 # API Gateway cuts off at 29 s: a single attempt and a slightly shorter timeout.
 _client = boto3.client(
@@ -34,12 +33,12 @@ def generate_plan(idea: str, level: str, budget: str) -> dict:
         response = _client.converse(
             modelId=MODEL_ID,
             system=[{"text": SYSTEM_PROMPT}],
-            messages=[{"role": "user", "content": [{"text": build_user_prompt(idea, level, budget)}]}],
-            inferenceConfig={"maxTokens": 3500, "temperature": 0.4},
-            toolConfig={
-                "tools": [{"toolSpec": PLAN_TOOL}],
-                "toolChoice": {"tool": {"name": TOOL_NAME}},
-            },
+            messages=[
+                {"role": "user", "content": [{"text": build_user_prompt(idea, level, budget)}]},
+                # Prefill: the model continues from "{", so it can only answer with JSON.
+                {"role": "assistant", "content": [{"text": "{"}]},
+            ],
+            inferenceConfig={"maxTokens": 2500, "temperature": 0.3},
         )
     except ReadTimeoutError:
         raise PlannerError("model_timeout", "Nimbo took too long thinking. Try a shorter idea.", 504)
@@ -52,26 +51,29 @@ def generate_plan(idea: str, level: str, budget: str) -> dict:
 
     raw = _extract_plan(response)
     if raw is None:
+        logger.error("Could not parse model output: %.500s", _response_text(response))
         raise PlannerError("bad_model_output", "I couldn't put the blueprint together this time. Please try again.")
     return normalize_plan(raw)
 
 
-def _extract_plan(response: dict):
+def _response_text(response: dict) -> str:
     content = response.get("output", {}).get("message", {}).get("content", [])
-    for block in content:
-        tool_use = block.get("toolUse")
-        if tool_use and tool_use.get("name") == TOOL_NAME:
-            data = tool_use.get("input")
-            return json.loads(data) if isinstance(data, str) else data
-    # Fallback: some models return JSON as plain text.
-    text = "".join(b.get("text", "") for b in content)
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group(0))
-        except json.JSONDecodeError:
-            return None
-    return None
+    return "".join(block.get("text", "") for block in content)
+
+
+def _extract_plan(response: dict):
+    """Rebuild the JSON object (we prefilled the opening brace) and parse it."""
+    text = _response_text(response).strip()
+    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
+    candidate = text if text.startswith("{") else "{" + text
+    end = candidate.rfind("}")
+    if end == -1:
+        return None
+    try:
+        data = json.loads(candidate[: end + 1])
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
 
 
 def _map_client_error(err: ClientError) -> PlannerError:
@@ -87,6 +89,8 @@ def _map_client_error(err: ClientError) -> PlannerError:
         )
     if code in ("ResourceNotFoundException", "ValidationException"):
         return PlannerError("model_config", "The configured model isn't available in this region. Check MODEL_ID.", 503)
+    if code == "ModelErrorException":
+        return PlannerError("bad_model_output", "The model stumbled while writing the plan. Please try again.")
     if code == "ModelTimeoutException":
         return PlannerError("model_timeout", "Nimbo took too long thinking. Try a shorter idea.", 504)
     return PlannerError("model_error", "Something went wrong talking to the model. Please try again in a moment.")
